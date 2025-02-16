@@ -30,6 +30,7 @@ interface CanvasProps {
   selectedFileType: string
   fileName: string
   onSave: (saveFunction: () => void) => void
+  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 export default function Canvas({
@@ -39,6 +40,7 @@ export default function Canvas({
   selectedFileType,
   fileName,
   onSave,
+  handleImageUpload,
 }: CanvasProps) {
   const [drawings, setDrawings] = useState<Drawing[]>([
     { id: 1, name: "Drawing 1", history: [], backgroundImage: null },
@@ -228,11 +230,13 @@ export default function Canvas({
         imageData = canvas.toDataURL(`image/${selectedFileType}`)
       }
 
-      // Save to user's device
-      const link = document.createElement("a")
-      link.download = `${fileName || `modo_drawing${currentDrawingId}`}.${selectedFileType}`
-      link.href = imageData
-      link.click()
+      onSave(() => {
+        // Save to user's device
+        const link = document.createElement("a")
+        link.download = `${fileName || `modo_drawing${currentDrawingId}`}.${selectedFileType}`
+        link.href = imageData
+        link.click()
+      })
     }
   }
 
@@ -278,34 +282,6 @@ export default function Canvas({
         ctx.fillStyle = "white"
         ctx.fillRect(0, 0, canvas.width, canvas.height)
       }
-    }
-  }
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file && ctxRef.current && canvasRef.current) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        const img = new Image()
-        img.onload = () => {
-          const ctx = ctxRef.current
-          const canvas = canvasRef.current
-          if (ctx && canvas) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height)
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-            setDrawings(
-              drawings.map((drawing) =>
-                drawing.id === currentDrawingId
-                  ? { ...drawing, backgroundImage: event.target?.result as string }
-                  : drawing,
-              ),
-            )
-            saveCurrentDrawing()
-          }
-        }
-        img.src = event.target?.result as string
-      }
-      reader.readAsDataURL(file)
     }
   }
 
@@ -385,6 +361,7 @@ export default function Canvas({
             Add Drawing
           </Button>
         </div>
+        <input type="file" onChange={handleImageUpload} accept="image/*" />
       </aside>
 
       <section className="flex-1 p-4">
@@ -452,19 +429,6 @@ export default function Canvas({
           </Button>
         </div>
       </aside>
-
-      {isSaveDialogOpen && (
-        <Dialog open={isSaveDialogOpen} onOpenChange={() => onSave(saveDrawing)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Save Drawing</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <Button onClick={() => onSave(saveDrawing)}>Save</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
 
       {isHistoryDialogOpen && (
         <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
