@@ -1,2 +1,3 @@
-# modo-canvas
-canvas for creating digital art within modo
+# `Modo canvas`
+
+To be integrated with the [complete `Modo` app](https://github.com/modo-collective/modo-app/) before launch.
